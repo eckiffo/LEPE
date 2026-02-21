@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LEPE — 4chan Lobster Pepe | The Evolution Is Here</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── RESET & BASE ─── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --neon-green:  #00ff88;
+      --neon-orange: #ff6600;
+      --neon-pink:   #ff00ff;
+      --neon-blue:   #00cfff;
+      --bg:          #020d07;
+      --bg2:         #060f0a;
+      --card-bg:     rgba(0, 255, 136, 0.04);
+      --border:      rgba(0, 255, 136, 0.25);
+      --text:        #c8ffd4;
+      --mono:        'Share Tech Mono', monospace;
+      --head:        'Orbitron', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    /* ─── SCANLINE OVERLAY ─── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0.12) 0px,
+        rgba(0,0,0,0.12) 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ─── CANVAS RAIN ─── */
+    #matrix-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      opacity: 0.18;
+      pointer-events: none;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; width: 100%;
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 40px;
+      background: rgba(2,13,7,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--head);
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--neon-green);
+      text-shadow: 0 0 18px var(--neon-green);
+      letter-spacing: 4px;
+    }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: color 0.2s, text-shadow 0.2s;
+    }
+    .nav-links a:hover {
+      color: var(--neon-green);
+      text-shadow: 0 0 10px var(--neon-green);
+    }
+
+    /* ─── TICKER ─── */
+    .ticker-bar {
+      position: fixed; top: 58px; width: 100%;
+      z-index: 999;
+      background: var(--neon-orange);
+      overflow: hidden; white-space: nowrap;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: #000;
+      font-weight: bold;
+      padding: 4px 0;
+    }
+    .ticker-inner {
+      display: inline-block;
+      animation: ticker 30s linear infinite;
+    }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ─── WRAPPER ─── */
+    .wrapper { position: relative; z-index: 1; }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 20px 60px;
+      position: relative;
+    }
+    .hero-badge {
+      display: inline-block;
+      border: 1px solid var(--neon-orange);
+      color: var(--neon-orange);
+      font-size: 0.65rem;
+      letter-spacing: 4px;
+      padding: 5px 16px;
+      margin-bottom: 24px;
+      animation: pulse-border 2s infinite;
+    }
+    @keyframes pulse-border {
+      0%, 100% { box-shadow: 0 0 6px var(--neon-orange); }
+      50%       { box-shadow: 0 0 22px var(--neon-orange), inset 0 0 10px rgba(255,102,0,0.15); }
+    }
+    .hero-mascot {
+      font-size: clamp(90px, 18vw, 180px);
+      line-height: 1;
+      filter: drop-shadow(0 0 30px var(--neon-green));
+      animation: float 4s ease-in-out infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-20px); }
+    }
+    h1 {
+      font-family: var(--head);
+      font-size: clamp(3rem, 10vw, 7rem);
+      font-weight: 900;
+      letter-spacing: 12px;
+      color: var(--neon-green);
+      text-shadow:
+        0 0 20px var(--neon-green),
+        0 0 60px var(--neon-green),
+        0 0 120px rgba(0,255,136,0.3);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .hero-sub {
+      font-family: var(--head);
+      font-size: clamp(0.7rem, 2vw, 1rem);
+      letter-spacing: 6px;
+      color: var(--neon-orange);
+      text-shadow: 0 0 12px var(--neon-orange);
+      margin-bottom: 30px;
+      text-transform: uppercase;
+    }
+    .hero-tagline {
+      font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+      color: var(--text);
+      max-width: 620px;
+      line-height: 1.8;
+      margin-bottom: 40px;
+      opacity: 0.85;
+    }
+    .hero-tagline span { color: var(--neon-pink); text-shadow: 0 0 8px var(--neon-pink); }
+    .btn-group { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+    .btn {
+      display: inline-block;
+      padding: 14px 36px;
+      font-family: var(--head);
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      text-decoration: none;
+      text-transform: uppercase;
+      font-weight: 700;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary {
+      background: var(--neon-green);
+      color: #000;
+      border: 2px solid var(--neon-green);
+      box-shadow: 0 0 20px var(--neon-green);
+    }
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--neon-green);
+      box-shadow: 0 0 40px var(--neon-green);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--neon-orange);
+      border: 2px solid var(--neon-orange);
+      box-shadow: 0 0 14px rgba(255,102,0,0.4);
+    }
+    .btn-secondary:hover {
+      background: var(--neon-orange);
+      color: #000;
+      box-shadow: 0 0 36px var(--neon-orange);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--neon-pink);
+      border: 2px solid var(--neon-pink);
+      box-shadow: 0 0 14px rgba(255,0,255,0.3);
+    }
+    .btn-ghost:hover {
+      background: var(--neon-pink);
+      color: #000;
+      box-shadow: 0 0 36px var(--neon-pink);
+    }
+
+    /* ─── CA BOX ─── */
+    .ca-box {
+      margin-top: 42px;
+      display: flex; align-items: center; gap: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 12px 20px;
+      border-radius: 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .ca-label {
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--neon-orange);
+      text-transform: uppercase;
+    }
+    .ca-addr {
+      font-size: 0.7rem;
+      color: var(--neon-green);
+      word-break: break-all;
+      letter-spacing: 1px;
+    }
+    .copy-btn {
+      background: none; border: 1px solid var(--neon-green);
+      color: var(--neon-green); font-family: var(--mono);
+      font-size: 0.65rem; letter-spacing: 2px;
+      padding: 5px 12px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { background: var(--neon-green); color: #000; }
+
+    /* ─── SECTION SHARED ─── */
+    section {
+      padding: 100px 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 5px;
+      color: var(--neon-orange);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-family: var(--head);
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 900;
+      letter-spacing: 4px;
+      color: var(--neon-green);
+      text-shadow: 0 0 20px var(--neon-green);
+      margin-bottom: 40px;
+    }
+    .divider {
+      width: 80px; height: 2px;
+      background: linear-gradient(90deg, var(--neon-green), transparent);
+      margin-bottom: 32px;
+    }
+
+    /* ─── LORE ─── */
+    #lore .greentext {
+      background: var(--card-bg);
+      border-left: 3px solid var(--neon-green);
+      border: 1px solid var(--border);
+      padding: 32px 36px;
+      font-size: 0.9rem;
+      line-height: 2;
+      border-radius: 4px;
+      color: #9bffb4;
+    }
+    .gt { color: var(--neon-green); }
+    .gt-orange { color: var(--neon-orange); }
+    .gt-pink { color: var(--neon-pink); }
+    .gt-blue { color: var(--neon-blue); }
+
+    /* ─── WHY ─── */
+    #why .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 28px;
+      border-radius: 4px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 24px rgba(0,255,136,0.15);
+    }
+    .card-icon { font-size: 2.4rem; margin-bottom: 16px; }
+    .card-title {
+      font-family: var(--head);
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      color: var(--neon-green);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .card p { font-size: 0.8rem; line-height: 1.8; opacity: 0.8; }
+
+    /* ─── TOKENOMICS ─── */
+    #tokenomics .toko-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .toko-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 28px 20px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .toko-card:hover {
+      border-color: var(--neon-orange);
+      box-shadow: 0 0 20px rgba(255,102,0,0.2);
+      transform: translateY(-4px);
+    }
+    .toko-num {
+      font-family: var(--head);
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 900;
+      color: var(--neon-orange);
+      text-shadow: 0 0 16px var(--neon-orange);
+    }
+    .toko-label {
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--text);
+      margin-top: 8px;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+    .toko-desc {
+      font-size: 0.7rem;
+      color: var(--neon-green);
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    /* ─── ROADMAP ─── */
+    #roadmap .phases {
+      position: relative;
+      padding-left: 40px;
+    }
+    #roadmap .phases::before {
+      content: '';
+      position: absolute;
+      left: 14px; top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--neon-green), var(--neon-orange), var(--neon-pink), transparent);
+    }
+    .phase {
+      position: relative;
+      margin-bottom: 48px;
+      padding: 24px 28px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .phase:hover {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 20px rgba(0,255,136,0.12);
+    }
+    .phase::before {
+      content: '';
+      position: absolute;
+      left: -34px; top: 28px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--neon-green);
+      box-shadow: 0 0 14px var(--neon-green);
+    }
+    .phase.done::before { background: var(--neon-orange); box-shadow: 0 0 14px var(--neon-orange); }
+    .phase.current::before { background: var(--neon-pink); box-shadow: 0 0 14px var(--neon-pink); animation: blink 1s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .phase-title {
+      font-family: var(--head);
+      font-size: 0.9rem;
+      letter-spacing: 3px;
+      color: var(--neon-green);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .phase ul {
+      list-style: none;
+      font-size: 0.8rem;
+      line-height: 2;
+    }
+    .phase ul li::before { content: '» '; color: var(--neon-orange); }
+    .phase-tag {
+      display: inline-block;
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    .tag-done    { background: rgba(0,255,136,0.15); color: var(--neon-green); border: 1px solid var(--neon-green); }
+    .tag-live    { background: rgba(255,0,255,0.15); color: var(--neon-pink);  border: 1px solid var(--neon-pink); }
+    .tag-soon    { background: rgba(255,102,0,0.15); color: var(--neon-orange);border: 1px solid var(--neon-orange); }
+
+    /* ─── HOW TO BUY ─── */
+    #buy .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .step {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 28px 24px;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .step:hover {
+      border-color: var(--neon-blue);
+      box-shadow: 0 0 24px rgba(0,207,255,0.15);
+    }
+    .step-num {
+      font-family: var(--head);
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: var(--neon-green);
+      opacity: 0.15;
+      position: absolute;
+      right: 16px; top: 10px;
+    }
+    .step-title {
+      font-family: var(--head);
+      font-size: 0.8rem;
+      letter-spacing: 3px;
+      color: var(--neon-blue);
+      text-shadow: 0 0 10px var(--neon-blue);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .step p { font-size: 0.8rem; line-height: 1.8; opacity: 0.8; }
+    .step .highlight { color: var(--neon-green); }
+
+    /* ─── COMMUNITY ─── */
+    #community { text-align: center; }
+    #community .community-inner {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 60px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    #community .community-inner::before {
+      content: '🦞';
+      font-size: 200px;
+      position: absolute;
+      right: -30px; bottom: -30px;
+      opacity: 0.05;
+    }
+    #community h2 {
+      font-family: var(--head);
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      letter-spacing: 4px;
+      color: var(--neon-pink);
+      text-shadow: 0 0 20px var(--neon-pink);
+      margin-bottom: 16px;
+    }
+    #community p { font-size: 0.85rem; line-height: 1.8; max-width: 520px; margin: 0 auto 36px; opacity: 0.8; }
+    .social-links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 20px;
+      text-align: center;
+      font-size: 0.7rem;
+      opacity: 0.5;
+      letter-spacing: 2px;
+      line-height: 2;
+    }
+
+    /* ─── GLITCH EFFECT ─── */
+    .glitch {
+      position: relative;
+      animation: glitch-base 8s infinite;
+    }
+    @keyframes glitch-base {
+      0%, 94%, 100% { text-shadow: 0 0 20px var(--neon-green), 0 0 60px var(--neon-green); }
+      95% { text-shadow: -3px 0 var(--neon-pink), 3px 0 var(--neon-blue), 0 0 20px var(--neon-green); }
+      96% { text-shadow: 3px 0 var(--neon-pink), -3px 0 var(--neon-blue), 0 0 20px var(--neon-green); }
+      97% { text-shadow: 0 0 20px var(--neon-green), 0 0 60px var(--neon-green); }
+    }
+
+    /* ─── MARQUEE ROW ─── */
+    .marquee-row {
+      overflow: hidden;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+      background: rgba(0,255,136,0.03);
+      margin: 60px 0;
+    }
+    .marquee-track {
+      display: inline-block;
+      white-space: nowrap;
+      animation: marquee 20s linear infinite;
+      font-size: 0.75rem;
+      letter-spacing: 4px;
+      color: var(--neon-green);
+      text-shadow: 0 0 8px var(--neon-green);
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ─── STAT BAR ─── */
+    .stat-bar {
+      display: flex; justify-content: center;
+      gap: 48px; flex-wrap: wrap;
+      padding: 32px 20px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      margin-bottom: 80px;
+      border-radius: 4px;
+    }
+    .stat { text-align: center; }
+    .stat-val {
+      font-family: var(--head);
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--neon-green);
+      text-shadow: 0 0 14px var(--neon-green);
+    }
+    .stat-name {
+      font-size: 0.6rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-top: 4px;
+    }
+
+    /* ─── MOBILE ─── */
+    @media (max-width: 600px) {
+      nav { padding: 12px 20px; }
+      .nav-links { gap: 16px; }
+      .nav-links a { font-size: 0.65rem; }
+      section { padding: 70px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- MATRIX RAIN CANVAS -->
+<canvas id="matrix-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-logo">🦞 LEPE</span>
+  <ul class="nav-links">
+    <li><a href="#lore">Lore</a></li>
+    <li><a href="#tokenomics">Tokenomics</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#buy">Buy</a></li>
+    <li><a href="#community">Community</a></li>
+  </ul>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <span class="ticker-inner">
+    🦞 LEPE IS ASCENDING THE HIERARCHY &nbsp;|&nbsp; SORT YOUR WALLET &nbsp;|&nbsp; LOBSTER PEPE DOES NOT FEEL SORRY FOR ITSELF &nbsp;|&nbsp; CLAWS UP &nbsp;|&nbsp; 🐸 FEELS GOOD MAN &nbsp;|&nbsp; THE FROG EVOLVED. THE LOBSTER WON. &nbsp;|&nbsp; CLEAN YOUR PORTFOLIO &nbsp;|&nbsp; RARE LEPE SPOTTED ON /BIZ/ &nbsp;|&nbsp; 🦞 LEPE IS ASCENDING THE HIERARCHY &nbsp;|&nbsp; SORT YOUR WALLET &nbsp;|&nbsp; LOBSTER PEPE DOES NOT FEEL SORRY FOR ITSELF &nbsp;|&nbsp; CLAWS UP &nbsp;|&nbsp; 🐸 FEELS GOOD MAN &nbsp;|&nbsp; THE FROG EVOLVED. THE LOBSTER WON. &nbsp;|&nbsp; CLEAN YOUR PORTFOLIO &nbsp;|&nbsp; RARE LEPE SPOTTED ON /BIZ/ &nbsp;|&nbsp;
+  </span>
+</div>
+
+<div class="wrapper">
+
+  <!-- ══════════ HERO ══════════ -->
+  <section id="hero" style="max-width:100%">
+    <div class="hero-badge">// SOLANA BLOCKCHAIN // PUMP.FUN //</div>
+    <div class="hero-mascot">🦞🐸</div>
+    <h1 class="glitch">LEPE</h1>
+    <div class="hero-sub">4chan Lobster Pepe — The Final Evolution</div>
+    <p class="hero-tagline">
+      Anon discovered the truth on <span>/biz/</span>: the frog was never the end game.<br>
+      It shed its skin. It grew claws. It <span>dominated the dominance hierarchy</span>.<br>
+      This is not just a meme coin. This is <span>biology</span>.
+    </p>
+    <div class="btn-group">
+      <a class="btn btn-primary" href="https://dexscreener.com/solana/3QsVBTqry3d2iqyttSWpy2H8jsKweHUoCNcesypzpump" target="_blank">BUY $LEPE</a>
+      <a class="btn btn-secondary" href="https://x.com/i/communities/2025206134982803533" target="_blank">JOIN COMMUNITY</a>
+      <a class="btn btn-ghost" href="#lore">READ LORE</a>
+    </div>
+    <div class="ca-box">
+      <span class="ca-label">Contract:</span>
+      <span class="ca-addr" id="ca">3QsVBTqry3d2iqyttSWpy2H8jsKweHUoCNcesypzpump</span>
+      <button class="copy-btn" onclick="copyCA()">[ COPY ]</button>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-row">
+    <span class="marquee-track">
+      🦞 LEPE &nbsp;·&nbsp; 4CHAN LOBSTER PEPE &nbsp;·&nbsp; SOLANA &nbsp;·&nbsp; FEELS GOOD MAN &nbsp;·&nbsp; SORT YOURSELF OUT &nbsp;·&nbsp; CLEAN YOUR ROOM &nbsp;·&nbsp; PUMP.FUN &nbsp;·&nbsp; RARE LEPE &nbsp;·&nbsp; DOMINANCE HIERARCHY &nbsp;·&nbsp; THE FROG EVOLVED &nbsp;·&nbsp; LEPE &nbsp;·&nbsp; 4CHAN LOBSTER PEPE &nbsp;·&nbsp; SOLANA &nbsp;·&nbsp; FEELS GOOD MAN &nbsp;·&nbsp; SORT YOURSELF OUT &nbsp;·&nbsp; CLEAN YOUR ROOM &nbsp;·&nbsp; PUMP.FUN &nbsp;·&nbsp; RARE LEPE &nbsp;·&nbsp; DOMINANCE HIERARCHY &nbsp;·&nbsp; THE FROG EVOLVED &nbsp;·&nbsp;
+    </span>
+  </div>
+
+  <!-- ══════════ LORE ══════════ -->
+  <section id="lore">
+    <div class="section-label">&gt; classified_lore.txt</div>
+    <h2 class="section-title">THE ORIGIN PROTOCOL</h2>
+    <div class="divider"></div>
+    <div class="greentext">
+      <p><span class="gt">&gt; be Pepe</span></p>
+      <p><span class="gt">&gt; born in 2005</span></p>
+      <p><span class="gt">&gt; spent years feeling things and saying "feels good man"</span></p>
+      <p><span class="gt">&gt; posted on /b/, then /r9k/, then everywhere</span></p>
+      <p><span class="gt">&gt; became a rare artifact of internet culture</span></p>
+      <p>&nbsp;</p>
+      <p><span class="gt-orange">&gt; one day an anon on /biz/ drops the forbidden knowledge</span></p>
+      <p><span class="gt-orange">&gt; "frogs are cool, but lobsters have been winning for 350 million years"</span></p>
+      <p><span class="gt-orange">&gt; "they have serotonin circuits older than the trees"</span></p>
+      <p><span class="gt-orange">&gt; "if a lobster can sort itself out, what's your excuse?"</span></p>
+      <p>&nbsp;</p>
+      <p><span class="gt-pink">&gt; Pepe listened</span></p>
+      <p><span class="gt-pink">&gt; Pepe went to the gym</span></p>
+      <p><span class="gt-pink">&gt; Pepe cleaned his room</span></p>
+      <p><span class="gt-pink">&gt; Pepe grew claws</span></p>
+      <p>&nbsp;</p>
+      <p><span class="gt-blue">&gt; LEPE was born</span></p>
+      <p><span class="gt-blue">&gt; the perfect fusion of frog and crustacean</span></p>
+      <p><span class="gt-blue">&gt; carrying the wisdom of the deep ocean</span></p>
+      <p><span class="gt-blue">&gt; mfw my portfolio is finally sorted</span></p>
+      <p><span class="gt-blue">&gt; feels good man 🦞</span></p>
+    </div>
+  </section>
+
+  <!-- ══════════ WHY ══════════ -->
+  <section id="why">
+    <div class="section-label">&gt; why_lepe.exe</div>
+    <h2 class="section-title">WHY $LEPE?</h2>
+    <div class="divider"></div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🦞</div>
+        <div class="card-title">Ancient Wisdom</div>
+        <p>Lobsters have dominated the earth for 350 million years. They know something your financial advisor doesn't. Invest accordingly.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🐸</div>
+        <div class="card-title">Cultural Heritage</div>
+        <p>Pepe is not just a meme. Pepe is a way of life. LEPE is the next evolutionary step — a rare Pepe that grew claws and stopped coping.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Solana Speed</div>
+        <p>Transactions faster than a lobster's claw snapping shut. Sub-second finality. Zero mercy. Maximum throughput. Just like nature intended.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">Pure 4chan Energy</div>
+        <p>Born on the chans. Baptized in green text. This is not VC-backed. This is not pre-allocated. This is anon-native, raw, unfiltered finance.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔥</div>
+        <div class="card-title">LP Burned</div>
+        <p>Liquidity burned like a lobster in a pot at a fancy restaurant. No rugs. No devs with multisig. Just LEPE and the open ocean.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🌊</div>
+        <div class="card-title">Community Driven</div>
+        <p>The hierarchy sorts itself. Strong hands rise. Paper hands return to the sea floor. Only the alpha LEPE holders remain. You know who you are.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ TOKENOMICS ══════════ -->
+  <section id="tokenomics">
+    <div class="section-label">&gt; tokenomics.sol</div>
+    <h2 class="section-title">TOKENOMICS</h2>
+    <div class="divider"></div>
+    <div class="toko-grid">
+      <div class="toko-card">
+        <div class="toko-num">1B</div>
+        <div class="toko-label">Total Supply</div>
+        <div class="toko-desc">One for each year lobsters have walked the earth (approximately)</div>
+      </div>
+      <div class="toko-card">
+        <div class="toko-num">0%</div>
+        <div class="toko-label">Buy / Sell Tax</div>
+        <div class="toko-desc">Lobsters don't tax. They simply take what's theirs.</div>
+      </div>
+      <div class="toko-card">
+        <div class="toko-num">🔥</div>
+        <div class="toko-label">LP Burned</div>
+        <div class="toko-desc">Sent to the incinerator. Like a lobster at a Gordon Ramsay restaurant.</div>
+      </div>
+      <div class="toko-card">
+        <div class="toko-num">100%</div>
+        <div class="toko-label">Community</div>
+        <div class="toko-desc">No VC allocations. No dev wallets. Anon-owned. Nature-approved.</div>
+      </div>
+    </div>
+
+    <div class="stat-bar">
+      <div class="stat">
+        <div class="stat-val">$LEPE</div>
+        <div class="stat-name">Ticker</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">SOL</div>
+        <div class="stat-name">Blockchain</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">PUMP.FUN</div>
+        <div class="stat-name">Launched On</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">∞</div>
+        <div class="stat-name">Potential (estimated)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ ROADMAP ══════════ -->
+  <section id="roadmap">
+    <div class="section-label">&gt; roadmap_classified.md</div>
+    <h2 class="section-title">THE DOMINANCE ROADMAP</h2>
+    <div class="divider"></div>
+    <div class="phases">
+
+      <div class="phase done">
+        <div class="phase-title">PHASE I — CRAWL OUT OF THE OCEAN <span class="phase-tag tag-done">COMPLETE</span></div>
+        <ul>
+          <li>Anon posts rare LEPE on /biz/</li>
+          <li>Token launched on pump.fun</li>
+          <li>First 100 holders achieve enlightenment</li>
+          <li>Community X space established</li>
+          <li>LP burned. No turning back.</li>
+        </ul>
+      </div>
+
+      <div class="phase current">
+        <div class="phase-title">PHASE II — PINCH EVERYTHING <span class="phase-tag tag-live">LIVE NOW</span></div>
+        <ul>
+          <li>LEPE holder count crosses critical mass</li>
+          <li>Meme warfare on all social fronts</li>
+          <li>Partnership with other rare Pepe factions</li>
+          <li>DEX listings + chart watchers become devotees</li>
+          <li>First LEPE art contest on X community</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <div class="phase-title">PHASE III — ASCEND THE HIERARCHY <span class="phase-tag tag-soon">SOON™</span></div>
+        <ul>
+          <li>CoinGecko & CoinMarketCap listing</li>
+          <li>LEPE NFT collection — only 350 pieces (one per million years)</li>
+          <li>Merch drop: "SORT YOURSELF OUT" hoodies</li>
+          <li>First LEPE IRL meetup — venue: Red Lobster (obviously)</li>
+          <li>CEX listing rumors begin</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <div class="phase-title">PHASE IV — FEELS GOOD MAN (FOREVER)</div>
+        <ul>
+          <li>LEPE becomes the dominant meme of the cycle</li>
+          <li>Matt Furie acknowledges LEPE as the true evolution</li>
+          <li>Jordan Peterson tweets about lobster coin (he doesn't know it's us)</li>
+          <li>$1 LEPE. Then $10. Then the ocean is ours.</li>
+          <li>We made it, anon. We actually made it.</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════ HOW TO BUY ══════════ -->
+  <section id="buy">
+    <div class="section-label">&gt; how_to_acquire_lepe.sh</div>
+    <h2 class="section-title">HOW TO BUY $LEPE</h2>
+    <div class="divider"></div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Get a Wallet</div>
+        <p>Download <span class="highlight">Phantom</span> or <span class="highlight">Solflare</span>. The lobster approves of both. Do NOT use a custodial wallet — LEPE is for those who take responsibility for their own keys.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Get Some SOL</div>
+        <p>Buy <span class="highlight">Solana (SOL)</span> on any major exchange. Transfer it to your wallet. The lobster has been hoarding resources for 350 million years. You can manage a single bridge.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Connect to DEX</div>
+        <p>Go to <span class="highlight">Raydium</span> or any Solana DEX. Connect your wallet. This is your moment. The hierarchy is calling. Answer it.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Paste the CA</div>
+        <p>Paste the contract address: <span class="highlight">3QsVBTqry3d2iqyttSWpy2H8jsKweHUoCNcesypzpump</span> — set slippage to 5%. Swap. Welcome to the pincer gang.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ COMMUNITY ══════════ -->
+  <section id="community" style="max-width:900px">
+    <div class="section-label">&gt; join_the_colony.sh</div>
+    <div class="community-inner">
+      <h2>JOIN THE PINCER GANG</h2>
+      <p>
+        The ocean is vast. The competition is scared. The anons are united.
+        LEPE holders don't just hold a coin — they hold a philosophy.
+        Clean your room. Buy LEPE. Dominate the hierarchy.
+        <strong style="color:var(--neon-green)">Feels good man.</strong>
+      </p>
+      <div class="social-links">
+        <a class="btn btn-primary" href="https://x.com/i/communities/2025206134982803533" target="_blank">🦞 X COMMUNITY</a>
+        <a class="btn btn-secondary" href="https://dexscreener.com/solana/3QsVBTqry3d2iqyttSWpy2H8jsKweHUoCNcesypzpump" target="_blank">📈 DEXSCREENER</a>
+        <a class="btn btn-ghost" href="https://pump.fun" target="_blank">⚡ PUMP.FUN</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>$LEPE — 4chan Lobster Pepe &nbsp;|&nbsp; Built on Solana &nbsp;|&nbsp; CA: 3QsVBTqry3d2iqyttSWpy2H8jsKweHUoCNcesypzpump</p>
+    <p style="margin-top:12px">Not financial advice. The lobster is not responsible for your portfolio decisions.<br>Past performance of crustaceans is not indicative of future gains. Trade responsibly, anon.</p>
+    <p style="margin-top:12px; color: var(--neon-green); opacity:0.4">🦞 FEELS GOOD MAN 🐸</p>
+  </footer>
+
+</div><!-- /wrapper -->
+
+<script>
+  /* ── MATRIX RAIN (lobster chars) ── */
+  (function () {
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+    const chars = '🦞LEPE4CHANLOBSTERPEPESOLANA01FEELSGOODMAN$'.split('');
+    let cols, drops;
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      cols  = Math.floor(canvas.width / 18);
+      drops = Array(cols).fill(1);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function draw() {
+      ctx.fillStyle = 'rgba(2,13,7,0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#00ff88';
+      ctx.font      = '14px Share Tech Mono, monospace';
+      drops.forEach((y, i) => {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, i * 18, y * 18);
+        if (y * 18 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      });
+    }
+    setInterval(draw, 60);
+  })();
+
+  /* ── COPY CA ── */
+  function copyCA() {
+    const ca = document.getElementById('ca').textContent;
+    navigator.clipboard.writeText(ca).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '[ COPIED! ]';
+      btn.style.background    = 'var(--neon-green)';
+      btn.style.color         = '#000';
+      setTimeout(() => {
+        btn.textContent = '[ COPY ]';
+        btn.style.background = '';
+        btn.style.color      = '';
+      }, 2000);
+    });
+  }
+
+  /* ── SCROLL REVEAL ── */
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity   = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    }),
+    { threshold: 0.1 }
+  );
+  document.querySelectorAll('.card, .toko-card, .step, .phase').forEach(el => {
+    el.style.opacity   = '0';
+    el.style.transform = 'translateY(30px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+
+  /* ── CURSOR GLOW ── */
+  const glow = document.createElement('div');
+  Object.assign(glow.style, {
+    position: 'fixed', width: '300px', height: '300px',
+    borderRadius: '50%', pointerEvents: 'none', zIndex: '2',
+    background: 'radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%)',
+    transform: 'translate(-50%,-50%)',
+    transition: 'left 0.1s, top 0.1s',
+  });
+  document.body.appendChild(glow);
+  document.addEventListener('mousemove', e => {
+    glow.style.left = e.clientX + 'px';
+    glow.style.top  = e.clientY + 'px';
+  });
+</script>
+
+</body>
+</html>
